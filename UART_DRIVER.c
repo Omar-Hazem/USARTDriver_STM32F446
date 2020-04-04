@@ -4,75 +4,75 @@
 /*
 Enable the given USART peripheral 
 */
-void USART_Enable(USART_TypeDef * uartx)
+void USART_Enable(USART_HANDLE * handle)
 {
-	if (uartx == USART1)
+	if (handle->USARTx == USART1)
 	{
-		USART1_CLOCK_ENABLE;
-		uartx->CR1 |=  (1<<13);
+		USART1_CLOCK_ENABLE();
+		handle->USARTx->CR1 |=  (1<<13);
 	}
-	else if (uartx == USART2)
+	else if (handle->USARTx == USART2)
 	{
-		UART2_CLOCK_ENABLE;
-		uartx->CR1 |=  (1<<13);
+		UART2_CLOCK_ENABLE();
+		handle->USARTx->CR1 |=  (1<<13);
 	}
-	else if (uartx == USART3)
+	else if (handle->USARTx == USART3)
 	{
-		UART3_CLOCK_ENABLE;
-		uartx->CR1 |=  (1<<13);
+		UART3_CLOCK_ENABLE();
+		handle->USARTx->CR1 |=  (1<<13);
 	}
-	else if (uartx == UART4)
+	else if (handle->USARTx == UART4)
 	{
-		UART4_CLOCK_ENABLE;
-		uartx->CR1 |=  (1<<13);
+		UART4_CLOCK_ENABLE();
+		handle->USARTx->CR1 |=  (1<<13);
 	}
-	else if (uartx == UART5)
+	else if (handle->USARTx == UART5)
 	{
-		UART5_CLOCK_ENABLE;
-		uartx->CR1 |=  (1<<13);
+		UART5_CLOCK_ENABLE();
+		handle->USARTx->CR1 |=  (1<<13);
 	}
-	else if (uartx == USART6)
+	else if (handle->USARTx == USART6)
 	{
-		USART6_CLOCK_ENABLE;
-		uartx->CR1 |=  (1<<13);
+		USART6_CLOCK_ENABLE();
+		handle->USARTx->CR1 |=  (1<<13);
 	}
 }
 
-void USART_Disable(USART_TypeDef * uartx)
+void USART_Disable(USART_HANDLE * handle)
 {
-	if (uartx == USART1)
+	if (handle->USARTx == USART1)
 	{
-		USART1_CLOCK_DISABLE;
+		USART1_CLOCK_DISABLE();
 	}
-	else if (uartx == USART2)
+	else if (handle->USARTx == USART2)
 	{
-		UART2_CLOCK_DISABLE;
+		UART2_CLOCK_DISABLE();
 	}
-	else if (uartx == USART3)
+	else if (handle->USARTx == USART3)
 	{
-		UART3_CLOCK_DISABLE;
+		UART3_CLOCK_DISABLE();
 	}
-	else if (uartx == UART4)
+	else if (handle->USARTx == UART4)
 	{
-		UART4_CLOCK_DISABLE;
+		UART4_CLOCK_DISABLE();
 	}
-	else if (uartx == UART5)
+	else if (handle->USARTx == UART5)
 	{
-		UART5_CLOCK_DISABLE;
+		UART5_CLOCK_DISABLE();
 	}
-	else if (uartx == USART6)
+	else if (handle->USARTx == USART6)
 	{
-		USART6_CLOCK_DISABLE;
+		USART6_CLOCK_DISABLE();
 	}
 }
 
 void USART_TX_EnableDisable(USART_TypeDef * uartx,uint8_t TE)
 {
-	if(TE)
+	if(ENABLE)
 	{
 		uartx->CR1 |= (1<<3);
 	}
-	else
+	else if(~ENABLE)
 	{
 		uartx->CR1 &= ~(1<<3);
 	}
@@ -90,15 +90,15 @@ void USART_RX_EnableDisable(USART_TypeDef * uartx,uint8_t RE)
 	}
 }
 
-void USART_WordLengthConfig(USART_TypeDef * uartx,uint8_t WordLength)
+void USART_WordLengthConfig(USART_HANDLE * handle)
 {
-	if(WordLength == 8)
+	if(handle->Init.WordLength == 0x08)
 	{
-		uartx->CR1 &= ~(1<<12);
+		handle->USARTx->CR1 &= ~(1<<12);
 	}
-	else if(WordLength == 9)
+	else if(handle->Init.WordLength == (uint32_t)0x09)
 	{
-		uartx->CR1 |= (1<<12);
+		handle->USARTx->CR1 |= (1<<12);
 	}
 	else
 	{
@@ -106,38 +106,40 @@ void USART_WordLengthConfig(USART_TypeDef * uartx,uint8_t WordLength)
 	}
 }
 
-void USART_StopBitsConfig(USART_TypeDef * uartx,uint8_t StopBits)
+void USART_StopBitsConfig(USART_HANDLE * handle)
 {
 	
-	switch(StopBits)
+	switch(handle->Init.StopBits)
 	{
-		case USART_STOP_BITS_1 : uartx->CR2 &= ~(0x03<<13);
+		case USART_STOP_BITS_1 : handle->USARTx->CR2 &= ~(0x03<<13);
 		break;
-		case USART_STOP_BITS_2 : uartx->CR2 |= (0x02<<13);
+		case USART_STOP_BITS_2 : handle->USARTx->CR2 |= (0x02<<13);
 		break;
 	}
 }
 
-void USART_BaudRateConfig(USART_TypeDef * usartx,uint32_t BaudRate)
+void USART_BaudRateConfig(USART_HANDLE * handle)
 {
-	switch(BaudRate)
+	switch(handle->Init.BaudRate)
 	{
-		case(USART_BAUD_9600):		usartx->BRR = 0x683	;
-		break;
-		case(USART_BAUD_115200):	usartx->BRR = 0x8A;
-		break;
+		case(USART_BAUD_9600):	
+			handle->USARTx->BRR = (uint32_t)0x0D03	;
+			break;
+		case(USART_BAUD_115200):
+			handle->USARTx->BRR = (uint32_t)0x0113;
+			break;
 	}
 }
 
-void USART_OversamplingConfig(USART_TypeDef *uartx, uint32_t over8)
+void USART_OversamplingConfig(USART_HANDLE * handle)
 {
-	if(over8)
+	if(handle->Init.OverSampling == 8)
 	{
-		uartx->CR1 |= (1<<15);
+		handle->USARTx->CR1 |= (1<<15);	//	1: oversampling by 8
 	}
-	else
+	else if(handle->Init.OverSampling == 16)
 	{
-	
+		handle->USARTx->CR1 &= ~(1<<15);	//	0: oversampling by 16
 	}
 	
 }
@@ -175,16 +177,26 @@ handle->USARTx->CR3 &= ~(1<<0);
 
 void USART_Init(USART_HANDLE * handle)
 {
-	USART_WordLengthConfig(handle->USARTx,handle->Init->WordLength);
-	USART_TX_EnableDisable(handle->USARTx,ENABLE);
-	USART_BaudRateConfig(handle->USARTx,handle->Init->BaudRate);
-	USART_StopBitsConfig(handle->USARTx,handle->Init->StopBits);
-	USART_RX_EnableDisable(handle->USARTx,ENABLE);
-	USART_OversamplingConfig(handle->USARTx, handle->Init->OverSampling);
-	USART_Enable(handle->USARTx);
-	handle->Error = USART_ERROR_NONE;
+	USART_Enable(handle);
+	handle->TX_State = USART_STATE_BUSY;
+	USART_WordLengthConfig(handle);
+	USART_StopBitsConfig(handle);
+	USART_BaudRateConfig(handle);
+	
+	USART_TX_EnableDisable(handle->USARTx,ENABLE);	//TX enabled for this app , otherwise use DISABLED
 	handle->TX_State = USART_STATE_READY;
+	
+	/* In asynchronous mode, the following bits must be kept cleared:
+     - LINEN and CLKEN bits in the USART_CR2 register,
+     - SCEN, HDSEL and IREN  bits in the USART_CR3 register.*/
+  CLEAR_BIT(handle->USARTx->CR2, (USART_CR2_LINEN | USART_CR2_CLKEN));
+  CLEAR_BIT(handle->USARTx->CR3, (USART_CR3_SCEN | USART_CR3_HDSEL | USART_CR3_IREN));
+	
+	USART_RX_EnableDisable(handle->USARTx,ENABLE);	//RX enabled for this app , otherwise use DISABLED
+	USART_OversamplingConfig(handle);
 	handle->RX_State = USART_STATE_READY;
+	
+	handle->Error = USART_ERROR_NONE;
 }
 
 
@@ -202,25 +214,50 @@ void USART_ConfigParityError(USART_HANDLE * handle , uint8_t enable)
 
 
 
-void USART_TX(USART_HANDLE * handle,uint8_t * buffer,uint32_t length)
+void USART_TX(USART_HANDLE * handle,uint8_t * data,uint16_t size)
 {
-	handle->TX_Buffer = buffer;
-	handle->TX_Counter = length;
-	handle->TX_Size = length;
+	uint8_t TCFlag = handle->USARTx->SR & USART_SR_TC;
+	while(!TCFlag)
+	{
+//	0: Transmission is not complete
+//	1: Transmission is complete
+	}
 	handle->TX_State = USART_STATE_BUSY_TX;
-	USART_Enable(handle->USARTx);	//maybe disabled by some other code
-	USART_TXInterruptEnable(handle->USARTx, ENABLE);
+	handle->TX_Buffer = data;
+	handle->TX_Counter = size;
+	handle->TX_Size = size;
+	//USART_TXInterruptEnable(handle->USARTx, ENABLE);
+	while(handle->TX_Counter > 0u)
+	{
+		handle->TX_Counter--;
+		handle->USARTx->DR = ((*data++) &((uint8_t)0xff));
+	}
+		handle->TX_State = USART_STATE_READY;
 }
 
 
-uint8_t USART_RX(USART_HANDLE * handle , uint8_t * buffer , uint32_t length)
+uint8_t USART_RX(USART_HANDLE * handle , uint8_t * data , uint16_t size)
 {
 	static uint32_t value ;
-	handle->RX_Buffer = buffer;
-	handle->RX_Counter = length;
-	handle->RX_Size = length;
+	if(handle->RX_State == USART_STATE_READY)
+	{
+		handle->Error = USART_ERROR_NONE;
+		handle->RX_Counter = size;
+		handle->RX_Size = size;
+		handle->RX_State = USART_STATE_BUSY_RX;
+		while(handle->RX_Counter > 0u)
+		{
+			handle->RX_Counter--;
+			*data++ = handle->USARTx->DR & (uint8_t)0xff;
+			
+		}
+		handle->RX_State = USART_STATE_READY;
+	}
+	handle->RX_Buffer = data;
+	handle->RX_Counter = size;
+	handle->RX_Size = size;
 	handle->RX_State = USART_STATE_BUSY_RX;
-	USART_Enable(handle->USARTx);	//maybe disabled by some other code
+	USART_Enable(handle);	//maybe disabled by some other code
 	USART_TXInterruptEnable(handle->USARTx, ENABLE);
 	USART_ConfigErrorInterrupt(handle,ENABLE);
 	USART_ConfigParityError(handle,ENABLE);
@@ -255,10 +292,9 @@ void USART_TXEInterruptHandle(USART_HANDLE * handle)
 
 void USART_RXNEInterruptHandle(USART_HANDLE * handle)
 {
-	uint8_t value =0;
-	if (handle->RX_State == USART_STATE_BUSY_RX)
+		if (handle->RX_State == USART_STATE_BUSY_RX)
 	{
-		if(handle->Init->Parity == 0)
+		if(handle->Init.Parity == 0)
 		{
 			*(handle->RX_Buffer) = (uint8_t)(handle->USARTx->DR) & (uint8_t)0xff;
 			handle->RX_Buffer ++;

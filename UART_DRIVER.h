@@ -4,35 +4,43 @@
 #include "STM32F446xx.h"
 
 //stop bits
-#define USART_STOP_BITS_1                          (uint32_t)1
-#define USART_STOP_BITS_2                          (uint32_t)2
+#define USART_STOP_BITS_1                          (uint32_t)0x01
+#define USART_STOP_BITS_2                          (uint32_t)0x02
 
 //Baud rate
-#define USART_BAUD_9600                   				(uint32_t)9600
-#define USART_BAUD_115200                 				(uint32_t)115200
-#define USART_BAUD_2000000                				(uint32_t)2000000
+#define USART_BAUD_9600                   				9600
+#define USART_BAUD_115200                 				115200
+
+//parity bits
+#define USART_PARITY_NONE													(uint32_t)0x00
+#define USART_PARITY_EVEN													(uint32_t)0x01
+#define USART_PARITY_ODD													(uint32_t)0x02
 
 //enable clocks for USARTs 
-#define USART1_CLOCK_ENABLE 										(RCC->APB2ENR) |= (RCC_APB2ENR_USART1EN)
-#define USART1_CLOCK_DISABLE										(RCC->APB2ENR) &= ~(RCC_APB2ENR_USART1EN)
+#define USART1_CLOCK_ENABLE()										(RCC->APB2ENR) |= (RCC_APB2ENR_USART1EN)
+#define USART1_CLOCK_DISABLE()										(RCC->APB2ENR) &= ~(RCC_APB2ENR_USART1EN)
 
-#define UART2_CLOCK_ENABLE											(RCC->APB1ENR) |= (RCC_APB1ENR_USART2EN)
-#define UART2_CLOCK_DISABLE											(RCC->APB1ENR) &= ~(RCC_APB1ENR_USART2EN)
+#define UART2_CLOCK_ENABLE()											(RCC->APB1ENR) |= (RCC_APB1ENR_USART2EN)
+#define UART2_CLOCK_DISABLE()										(RCC->APB1ENR) &= ~(RCC_APB1ENR_USART2EN)
 
-#define UART3_CLOCK_ENABLE											(RCC->APB1ENR) |= (RCC_APB1ENR_USART3EN)
-#define UART3_CLOCK_DISABLE											(RCC->APB1ENR) &= ~(RCC_APB1ENR_USART3EN)
+#define UART3_CLOCK_ENABLE()											(RCC->APB1ENR) |= (RCC_APB1ENR_USART3EN)
+#define UART3_CLOCK_DISABLE()										(RCC->APB1ENR) &= ~(RCC_APB1ENR_USART3EN)
 
-#define UART4_CLOCK_ENABLE											(RCC->APB1ENR) |= (RCC_APB1ENR_UART4EN)
-#define UART4_CLOCK_DISABLE											(RCC->APB1ENR) &= ~(RCC_APB1ENR_UART4EN)
+#define UART4_CLOCK_ENABLE()											(RCC->APB1ENR) |= (RCC_APB1ENR_UART4EN)
+#define UART4_CLOCK_DISABLE()											(RCC->APB1ENR) &= ~(RCC_APB1ENR_UART4EN)
 
-#define UART5_CLOCK_ENABLE											(RCC->APB1ENR) |= (RCC_APB1ENR_UART5EN)
-#define UART5_CLOCK_DISABLE											(RCC->APB1ENR) &= ~(RCC_APB1ENR_UART5EN)
+#define UART5_CLOCK_ENABLE()											(RCC->APB1ENR) |= (RCC_APB1ENR_UART5EN)
+#define UART5_CLOCK_DISABLE()											(RCC->APB1ENR) &= ~(RCC_APB1ENR_UART5EN)
 
-#define USART6_CLOCK_ENABLE											(RCC->APB2ENR) |= (RCC_APB2ENR_USART6EN)
-#define USART6_CLOCK_DISABLE										(RCC->APB2ENR) &= ~(RCC_APB2ENR_USART6EN)
+#define USART6_CLOCK_ENABLE()											(RCC->APB2ENR) |= (RCC_APB2ENR_USART6EN)
+#define USART6_CLOCK_DISABLE()										(RCC->APB2ENR) &= ~(RCC_APB2ENR_USART6EN)
 
 
 //********Enumerations
+typedef enum{
+	OVERSAMPLING_16_ENABLE = (uint32_t)0X00,
+	OVERSAMPLING_8_ENABLE  = (uint32_t)0X01
+}OVERSAMPLING;
 
 typedef enum
 {
@@ -74,46 +82,49 @@ typedef struct
 
 }USART_INIT;
 
-//pointer to fuctions typedefs (Call Back functions)
-typedef void (*TX_CallBack) (void);		//to call a function in the upper layer 
-typedef void (*RX_CallBack) (void);		//to call a function in the upper layer
 
 //UART handle structure
-typedef struct{
-	
+typedef struct
+{
+
 	USART_TypeDef * USARTx;
-	USART_INIT * Init;
+	USART_INIT  Init;
 	USART_STATES TX_State;
 	USART_STATES RX_State;
-	USART_ERRORS Error;
+	uint32_t Error;
 	uint8_t * TX_Buffer;
-	uint32_t TX_Counter;
-	uint32_t TX_Size;
+	uint16_t TX_Counter;
+	uint16_t TX_Size;
 	uint8_t * RX_Buffer;
-	uint32_t RX_Counter;
-	uint32_t RX_Size;
-	TX_CallBack * TX_FinishCallBack;
-	RX_CallBack * RX_FinishCallBack;
-	
+	uint16_t RX_Counter;
+	uint16_t RX_Size;
+//	TX_CallBack * TX_FinishCallBack;
+//	RX_CallBack * RX_FinishCallBack;
+
 }USART_HANDLE;
 
+//pointer to fuctions typedefs (Call Back functions)
+// void (*TX_CallBack) (USART_HANDLE * instance);		//to call a function in the upper layer 
+// void (*RX_CallBack) (USART_HANDLE * instance);		//to call a function in the upper layer
+//	
 
 //Function prototypes
 
-void USART_Enable(USART_TypeDef *);
-void USART_Disable(USART_TypeDef *);
+void USART_Enable(USART_HANDLE * handle);
+void USART_Disable(USART_HANDLE * handle);
 void USART_TX_EnableDisable(USART_TypeDef * uartx,uint8_t TE);
 void USART_RX_EnableDisable(USART_TypeDef * uartx,uint8_t RE);
-void USART_StopBitsConfig(USART_TypeDef * uartx,uint8_t StopBits);
-void USART_BaudRateConfig(USART_TypeDef * usartx,uint32_t BaudRate);
-void USART_OversamplingConfig(USART_TypeDef *uartx, uint32_t over8);
+void USART_WordLengthConfig(USART_HANDLE * handle);
+void USART_StopBitsConfig(USART_HANDLE * handle);
+void USART_BaudRateConfig(USART_HANDLE * handle);
+void USART_OversamplingConfig(USART_HANDLE *handle);
 void USART_TXInterruptEnable(USART_TypeDef *uartx, uint32_t txe_en);
 void USART_RxInterruptEnable(USART_TypeDef *uartx, uint32_t rxne_en);
 void USART_ConfigErrorInterrupt(USART_HANDLE * handle , uint8_t enable);
 void USART_Init(USART_HANDLE * handle);
 void USART_ConfigParityError(USART_HANDLE * handle , uint8_t enable);
-void USART_TX(USART_HANDLE * handle,uint8_t * buffer,uint32_t length);
-uint8_t USART_RX(USART_HANDLE * handle,uint8_t * buffer,uint32_t length);
+void USART_TX(USART_HANDLE * handle,uint8_t * buffer,uint16_t length);
+uint8_t USART_RX(USART_HANDLE * handle,uint8_t * buffer,uint16_t length);
 void USART_ClearErrorFlag(USART_HANDLE * handle);
 void USART_TXEInterruptHandle(USART_HANDLE * handle);
 void USART_RXNEInterruptHandle(USART_HANDLE * handle);
